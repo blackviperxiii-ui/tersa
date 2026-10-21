@@ -494,7 +494,7 @@ function build(raw: Raw, report: Report): Node | null {
         ...base,
         type: "kpi",
         ...(text !== undefined ? { label: text } : {}),
-        ...(raw.bind ? { bind: raw.bind.value } : {}),
+        bind: raw.bind!.value,
         format: format ?? "number",
       });
     }

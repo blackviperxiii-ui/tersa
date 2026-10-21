@@ -163,7 +163,7 @@ export function validate(app: AppNode): Diagnostic[] {
         }
         break;
       case "kpi":
-        if (node.bind) useBinding(node, node.bind, node.bind.includes(".") ? "record" : "item");
+        useBinding(node, node.bind, node.bind.includes(".") ? "record" : "item");
         break;
       case "row":
         if (node.repeat && node.bind) useBinding(node, node.bind, "list");

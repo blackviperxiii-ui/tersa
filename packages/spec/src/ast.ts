@@ -72,7 +72,7 @@ export interface CardNode extends Base {
 export interface KpiNode extends Base {
   type: "kpi";
   label?: string;
-  bind?: string;
+  bind: string;
   format: KpiFormat;
 }
 export interface ChartNode extends Base {
