@@ -1,0 +1,10 @@
+app "Acme Ops" theme=aurora dark nav=sidebar
+page /dashboard "Overview"
+  row kpi*4 @metrics
+  grid 2
+    chart line @revenue x=month y=total "Revenue"
+    chart bar @signups x=week "Signups"
+  table @orders cols=id,customer,total:money,status:badge sort search page=20
+    action "Refund" ~destructive -> api.refund(id) confirm
+page /settings "Settings"
+  form @user fields=name,email:email,plan:select(free|pro) -> api.saveUser

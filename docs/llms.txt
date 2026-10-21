@@ -1,0 +1,67 @@
+# tersa
+
+Compact spec in, polished shadcn code out. Write a `.tsa` file, run `tersa gen app.tsa -o out/`,
+get a Next.js (App Router) + Tailwind v4 + shadcn/ui app with mock data, loading and empty states,
+responsive layout and design tokens. Deterministic: same spec, same code.
+
+## Grammar (v0)
+
+- One node per line. Indent 2 spaces to nest. `# ` starts a comment.
+- Line shape: `type positional... key=value flag "Text" @data #id ~variant -> action`
+- `"Text"` label or title. `@name` binds data (dots only on kpi: `@user.revenue`).
+- `#id` sets an element id. `~variant` picks a style variant.
+- `-> api.fn`, `-> api.fn(col)` calls a stub in lib/api.ts; `-> /path` navigates.
+- First line must be `app`. `page` lines sit at the top level after it. Everything else nests under a page.
+
+## Nodes
+
+```
+app "Name" [theme=aurora] [dark] [nav=sidebar|top|none]
+page /path "Title"
+row [kpi*N @list]                     # N kpi cards from a list of {label,value,delta}
+grid 1..6                             # responsive columns
+card ["Title"]
+kpi @data.field ["Label"] [format=number|money|percent]
+chart line|bar @list x=key [y=key] ["Title"]
+table @list cols=key[:type],... [sort] [search] [page=N] ["Title"]
+  action "Label" [~variant] -> api.fn(col,...) [confirm]
+form [@record] fields=name[:type],... -> api.fn ["Title"] [submit="Label"]
+button "Label" [~variant] [-> api.fn | -> /path]
+text "Copy" [~heading|~muted]
+```
+
+Column types: text number money badge date email. Field types: text email number select(a|b) textarea checkbox.
+Variants (button/action): default destructive outline secondary ghost.
+
+## Example
+
+```
+app "Acme Ops" theme=aurora dark nav=sidebar
+page /dashboard "Overview"
+  row kpi*4 @metrics
+  grid 2
+    chart line @revenue x=month y=total "Revenue"
+    chart bar @signups x=week "Signups"
+  table @orders cols=id,customer,total:money,status:badge sort search page=20
+    action "Refund" ~destructive -> api.refund(id) confirm
+page /settings "Settings"
+  form @user fields=name,email:email,plan:select(free|pro) -> api.saveUser
+```
+
+## Output
+
+`app/<path>/page.tsx` + `loading.tsx` per page, `app/layout.tsx` (shell + nav), `app/error.tsx`,
+`app/globals.css` (tokens), `lib/data.ts` (mock data), `lib/api.ts` (action stubs),
+`components/ui/*` (shadcn-style), `components/tersa/*` (kpi, charts, data-table, form, shell).
+
+## Themes
+
+`aurora` (only preset in M0): W3C DTCG tokens in OKLCH, built with Style Dictionary into
+`:root` / `.dark` CSS variables and a Tailwind `@theme inline` block. Use token utilities
+(`bg-primary`, `text-muted-foreground`, `border-border`, `fill-chart-1`); never raw hex or px.
+
+## Rules for agents
+
+1. Read `app.tsa` first; change the spec, not the generated layout.
+2. Run `tersa gen` after editing the spec. Errors show `file:line:col`, a caret, and a hint.
+3. Put custom logic in `lib/api.ts` and `lib/data.ts`. Keep tokens, never raw colors.

@@ -1,0 +1,20 @@
+---
+description: Tersa spec-driven UI. Read app.tsa first, regenerate with tersa gen, use tokens only.
+globs: ["app.tsa", "app/**/*.tsx", "lib/**/*.ts", "components/**/*.tsx"]
+alwaysApply: true
+---
+
+# Tersa rules
+
+- `app.tsa` is the source of truth. Read it before touching UI. Change structure there, then run
+  `tersa gen app.tsa -o <dir>`.
+- Generated `app/*/page.tsx`, `loading.tsx` and `layout.tsx` are overwritten on regen. Custom logic
+  goes in `lib/api.ts` and `lib/data.ts`.
+- Styling uses design tokens only (`bg-primary`, `text-muted-foreground`, `border-border`,
+  `fill-chart-2`). No raw hex, rgb, hsl or px. Tokens are CSS variables in `app/globals.css`.
+- Keep loading, empty and error states intact. Components are shadcn-style in `components/ui`.
+- `pnpm typecheck` and `pnpm build` must pass before you are done.
+
+Grammar: one node per line, 2-space indent nests, `"Text"` labels, `@name` binds data, `#id` ids,
+`~variant` variants, `-> api.fn` or `-> /path` actions. Nodes: app, page, row, grid, card, kpi,
+chart, table (+ action), form, button, text.
