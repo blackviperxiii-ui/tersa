@@ -1,0 +1,15 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "baseUrl": ".",
+    "paths": {
+      "@tersa/spec": ["packages/spec/src/index.ts"],
+      "@tersa/themes": ["packages/themes/src/index.ts"],
+      "@tersa/gen-next": ["packages/gen-next/src/index.ts"],
+      "@tersa/cli": ["packages/cli/src/index.ts"]
+    }
+  },
+  "include": ["packages/*/src", "packages/*/test", "vitest.config.ts", "eslint.config.js"],
+  "exclude": ["**/node_modules", "**/dist", "**/.tmp", "packages/gen-next/test/fixtures"]
+}
