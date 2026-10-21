@@ -7,10 +7,17 @@
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
-    ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" },
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
     "./aurora.css": "./css/aurora.css"
   },
-  "files": ["dist", "css", "tokens"],
+  "files": [
+    "dist",
+    "css",
+    "tokens"
+  ],
   "scripts": {
     "build:tokens": "node scripts/build.mjs",
     "build": "node scripts/build.mjs && tsup src/index.ts --format esm --dts --clean"

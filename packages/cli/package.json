@@ -4,11 +4,20 @@
   "description": "The tersa command line: compile .tsa specs into Next.js + shadcn/ui apps.",
   "license": "MIT",
   "type": "module",
-  "bin": { "tersa": "./dist/bin.js" },
+  "bin": {
+    "tersa": "./dist/bin.js"
+  },
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
-  "exports": { ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" } },
-  "files": ["dist"],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "tsup src/index.ts src/bin.ts --format esm --dts --clean"
   },
