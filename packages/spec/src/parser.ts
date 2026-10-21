@@ -595,7 +595,7 @@ export function parse(source: string): ParseResult {
     const report: Report = (code, message, column, length, hint) =>
       diagnostics.push({ code, message, line, column, length, ...(hint ? { hint } : {}) });
 
-    if (rawLine.trim() === "" || rawLine.trimStart().startsWith("//")) continue;
+    if (/^\s*(#(\s|$)|$)/.test(rawLine)) continue;
 
     let indent = 0;
     let idx = 0;

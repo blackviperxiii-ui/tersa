@@ -93,10 +93,24 @@ describe("parse: valid specs", () => {
 
   it("ignores blank lines, comments and CRLF line endings", () => {
     const src =
-      'app "X"\r\n\r\n// a comment\r\npage /a "A"\r\n  // nested comment\r\n  text "hi"\r\n';
+      'app "X"\r\n\r\n# a comment\r\npage /a "A"\r\n  # nested comment\r\n  text "hi"\r\n';
     const { app, diagnostics } = parse(src);
     expect(diagnostics).toEqual([]);
     expect(child(child(app!, 0), 0)).toMatchObject({ type: "text", text: "hi" });
+  });
+
+  it("supports trailing comments but not at the cost of #ids", () => {
+    const src = [
+      'app "X"',
+      'page /a "A"',
+      "  row kpi*4 @metrics   # label,value,delta per item",
+      '  text "a # b" #note',
+    ].join("\n");
+    const { app, diagnostics } = parse(src);
+    expect(diagnostics).toEqual([]);
+    const page = child(app!, 0);
+    expect(child(page, 0)).toMatchObject({ type: "row", bind: "metrics" });
+    expect(child(page, 1)).toMatchObject({ type: "text", text: "a # b", id: "note" });
   });
 
   it("reads ids, variants, quoted prop values and escapes", () => {
@@ -144,7 +158,7 @@ describe("parse: valid specs", () => {
 describe("parse: invalid specs report line and column", () => {
   it("rejects an empty spec", () => {
     expect(firstError("")).toMatchObject({ code: "E_EMPTY", line: 1, column: 1 });
-    expect(firstError("// only a comment\n")).toMatchObject({ code: "E_EMPTY" });
+    expect(firstError("# only a comment\n")).toMatchObject({ code: "E_EMPTY" });
   });
 
   it("requires app as the first node", () => {

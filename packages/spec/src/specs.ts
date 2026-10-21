@@ -134,11 +134,11 @@ export const NODE_SPECS: Record<NodeType, NodeSpec> = {
     requiredProps: [],
     flags: [],
     text: "optional",
-    bind: "optional",
+    bind: "required",
     variant: false,
     action: "none",
     children: [],
-    usage: 'kpi [@data] ["Label"] [format=number|money|percent]',
+    usage: 'kpi @data.path ["Label"] [format=number|money|percent]',
   },
   chart: {
     type: "chart",

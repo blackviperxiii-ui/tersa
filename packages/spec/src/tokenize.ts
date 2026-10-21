@@ -73,6 +73,9 @@ export function tokenizeLine(
     }
     const col = offset + i + 1;
 
+    // "# text" (hash followed by whitespace) starts a comment; "#id" is an id.
+    if (ch === "#" && (i + 1 >= n || isSpace(text[i + 1]))) break;
+
     if (ch === '"') {
       const s = readString(i);
       if (!s.closed) {

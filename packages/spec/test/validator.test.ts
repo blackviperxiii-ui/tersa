@@ -42,6 +42,46 @@ describe("validate", () => {
   });
 });
 
+describe("validate: data bindings and actions", () => {
+  it("rejects a name used for two shapes of data", () => {
+    const src = 'app "X"\npage /a "A"\n  row kpi*2 @m\n  kpi @m.revenue';
+    expect(codes(src)).toEqual(["E_BIND_CONFLICT"]);
+    expect(
+      codes('app "X"\npage /a "A"\n  chart line @d x=a\n  form @d fields=a -> api.go'),
+    ).toEqual(["E_BIND_CONFLICT"]);
+  });
+
+  it("shares a list between charts and tables", () => {
+    const src = 'app "X"\npage /a "A"\n  chart line @d x=a y=b\n  table @d cols=a,b';
+    expect(codes(src)).toEqual([]);
+  });
+
+  it("allows dotted bindings only on kpi", () => {
+    expect(codes('app "X"\npage /a "A"\n  kpi @m.revenue "Revenue"\n  kpi @m.churn')).toEqual([]);
+    expect(codes('app "X"\npage /a "A"\n  chart line @a.b x=k')).toEqual(["E_BAD_BIND"]);
+  });
+
+  it("rejects reserved words as data names", () => {
+    expect(codes('app "X"\npage /a "A"\n  chart line @delete x=k')).toEqual(["E_RESERVED_BIND"]);
+  });
+
+  it("checks that action arguments are table columns", () => {
+    const src =
+      'app "X"\npage /a "A"\n  table @t cols=id,name\n    action "Go" -> api.go(id,missing)';
+    const { app } = parse(src);
+    const [d] = validate(app!);
+    expect(d).toMatchObject({ code: "E_UNKNOWN_FIELD", line: 4 });
+    expect(d!.hint).toContain("id, name");
+  });
+
+  it("requires api actions on tables and forms", () => {
+    expect(
+      codes('app "X"\npage /a "A"\n  table @t cols=id\n    action "Go" -> /elsewhere'),
+    ).toEqual(["E_BAD_ACTION"]);
+    expect(codes('app "X"\npage /a "A"\n  form fields=a -> /elsewhere')).toEqual(["E_BAD_ACTION"]);
+  });
+});
+
 describe("compile", () => {
   it("returns the app for valid input", () => {
     expect(compile('app "X"\npage /a "A"').name).toBe("X");

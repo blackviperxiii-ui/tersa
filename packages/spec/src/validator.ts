@@ -2,6 +2,22 @@ import type { AppNode, Node } from "./ast";
 import type { Diagnostic } from "./errors";
 import { NODE_SPECS } from "./specs";
 
+const RESERVED = new Set(
+  (
+    "break case catch class const continue debugger default delete do else enum export extends " +
+    "false finally for function if import in instanceof new null return super switch this throw " +
+    "true try typeof var void while with yield let static implements interface package private " +
+    "protected public await"
+  ).split(" "),
+);
+
+type BindKind = "list" | "record" | "item";
+const KIND_LABEL: Record<BindKind, string> = {
+  list: "list of rows",
+  record: "record",
+  item: "single metric",
+};
+
 /** Structural checks on a parsed tree: nesting rules, uniqueness, cross-node requirements. */
 export function validate(app: AppNode): Diagnostic[] {
   const out: Diagnostic[] = [];
@@ -17,6 +33,38 @@ export function validate(app: AppNode): Diagnostic[] {
 
   const ids = new Map<string, Node>();
   const paths = new Map<string, Node>();
+  const bindings = new Map<string, { kind: BindKind; node: Node }>();
+
+  const useBinding = (node: Node, bind: string, kind: BindKind) => {
+    const root = bind.split(".")[0]!;
+    if (RESERVED.has(root)) {
+      add(
+        node,
+        "E_RESERVED_BIND",
+        `"@${root}" is a reserved word and cannot name data`,
+        "pick another name",
+      );
+      return;
+    }
+    if (kind !== "record" && kind !== "item" && bind.includes(".")) {
+      add(
+        node,
+        "E_BAD_BIND",
+        `only kpi bindings can use dots, found "@${bind}"`,
+        `bind to "@${root}"`,
+      );
+    }
+    const prev = bindings.get(root);
+    if (!prev) bindings.set(root, { kind, node });
+    else if (prev.kind !== kind) {
+      add(
+        node,
+        "E_BIND_CONFLICT",
+        `"@${root}" is a ${KIND_LABEL[kind]} here but a ${KIND_LABEL[prev.kind]} on line ${prev.node.loc.line}`,
+        "use a different name for each shape of data",
+      );
+    }
+  };
 
   const walk = (node: Node, parent?: Node) => {
     if (parent) {
@@ -75,6 +123,53 @@ export function validate(app: AppNode): Diagnostic[] {
       if (node.children.length > 0) {
         add(node, "E_BAD_CHILD", "a repeating row generates its own kpis and cannot have children");
       }
+    }
+
+    switch (node.type) {
+      case "chart":
+        useBinding(node, node.bind, "list");
+        break;
+      case "table": {
+        useBinding(node, node.bind, "list");
+        const keys = node.cols.map((c) => c.key);
+        for (const child of node.children) {
+          if (child.type !== "action") continue;
+          if (child.action.kind !== "api") {
+            add(
+              child,
+              "E_BAD_ACTION",
+              "table actions must call an api function",
+              "write -> api.name(id)",
+            );
+            continue;
+          }
+          for (const arg of child.action.args) {
+            if (!keys.includes(arg)) {
+              add(
+                child,
+                "E_UNKNOWN_FIELD",
+                `"${arg}" is not a column of this table`,
+                `columns: ${keys.join(", ")}`,
+              );
+            }
+          }
+        }
+        break;
+      }
+      case "form":
+        if (node.bind) useBinding(node, node.bind, "record");
+        if (node.action.kind !== "api") {
+          add(node, "E_BAD_ACTION", "a form must submit to an api function", "write -> api.name");
+        }
+        break;
+      case "kpi":
+        if (node.bind) useBinding(node, node.bind, node.bind.includes(".") ? "record" : "item");
+        break;
+      case "row":
+        if (node.repeat && node.bind) useBinding(node, node.bind, "list");
+        break;
+      default:
+        break;
     }
 
     for (const child of node.children) walk(child, node);
