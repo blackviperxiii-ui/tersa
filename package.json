@@ -1,0 +1,30 @@
+{
+  "name": "tersa-monorepo",
+  "private": true,
+  "version": "0.0.0",
+  "description": "Compact spec in, polished shadcn code out. A token-minimizing spec layer for coding agents.",
+  "license": "MIT",
+  "type": "module",
+  "packageManager": "pnpm@10.28.0",
+  "engines": { "node": ">=20.9" },
+  "scripts": {
+    "postinstall": "pnpm --filter @tersa/themes run build",
+    "build": "pnpm -r run build",
+    "lint": "eslint . && prettier --check .",
+    "format": "prettier --write .",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "vitest run",
+    "gen:example": "node packages/cli/dist/bin.js gen examples/dashboard/app.tsa -o out/",
+    "verify:example": "node scripts/verify-example.mjs"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/node": "^22.0.0",
+    "eslint": "^10.13.0",
+    "prettier": "^3.9.10",
+    "tsup": "^9.0.0",
+    "typescript": "~6.0.3",
+    "typescript-eslint": "^8.72.0",
+    "vitest": "^5.0.5"
+  }
+}

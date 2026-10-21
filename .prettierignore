@@ -1,0 +1,8 @@
+node_modules
+dist
+out
+.tmp
+pnpm-lock.yaml
+packages/themes/src/generated
+**/__snapshots__
+packages/gen-next/test/fixtures

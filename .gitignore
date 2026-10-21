@@ -1,0 +1,10 @@
+node_modules
+dist
+out
+.tmp
+*.tsbuildinfo
+.next
+packages/themes/src/generated
+.DS_Store
+
+packages/themes/css
