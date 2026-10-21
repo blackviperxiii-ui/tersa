@@ -1,0 +1,18 @@
+{
+  "name": "@tersa/spec",
+  "version": "0.1.0",
+  "description": "Tersa grammar v0: parser, AST types and validator for .tsa specs.",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": { ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" } },
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsup src/index.ts --format esm --dts --clean"
+  },
+  "devDependencies": {
+    "tsup": "^9.0.0",
+    "typescript": "~6.0.3"
+  }
+}
