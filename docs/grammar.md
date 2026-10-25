@@ -37,7 +37,7 @@ Modifiers can appear in any order after the type. Blank lines are ignored.
 ### app
 
 ```
-app "Name" [theme=aurora] [dark] [nav=sidebar|top|none]
+app "Name" [theme=aurora|ember] [dark] [nav=sidebar|top|none]
 ```
 
 Defaults: `theme=aurora`, light mode, `nav=sidebar`. At least one page is required.
@@ -75,6 +75,33 @@ card ["Title"]
 ```
 
 A shadcn card wrapping its children.
+
+### hero
+
+```
+hero "Headline" [subtitle="Supporting copy"] [align=center|left]
+  button "Primary" -> /path
+```
+
+Marketing hero with optional subtitle and child `button` / `text` actions.
+
+### features
+
+```
+features @list [cols=1..4] ["Section title"]
+```
+
+Feature grid from a list binding. Rows use `title` and `description` fields (generated in mock
+data when omitted).
+
+### cta
+
+```
+cta "Heading" [subtitle="Subcopy"]
+  button "Label" -> api.fn
+```
+
+Call-to-action band; child buttons render in the action row.
 
 ### kpi
 
@@ -146,7 +173,24 @@ Each `@name` is one of three shapes, and a name must keep one shape across the f
 | record | `form`, `kpi @rec.field`      | object with those fields |
 | item   | `kpi @name`                   | a number                 |
 
-Mock data in `lib/data.ts` is generated from the column names, deterministically.
+Mock data in `lib/data.ts` is generated from the column names, deterministically. Typed fetch stubs
+live in `lib/stubs.ts`.
+
+## Protected edit slots
+
+Generated React under `app/` is fully regenerated and marked with a `@tersa-generated` banner.
+`lib/api.ts` and `lib/data.ts` include `// @tersa-slot begin custom` … `end custom` regions: code
+inside those markers is preserved when you run `tersa gen` again. Put long-lived handlers, fixtures,
+and manual data overrides in the custom slots.
+
+## CLI
+
+| Command                           | Purpose                                                 |
+| --------------------------------- | ------------------------------------------------------- |
+| `tersa init [dir] [--name "App"]` | Scaffold `app.tsa`, agent templates, and `out/`         |
+| `tersa check <file.tsa> [...]`    | Validate specs (exit `2` on errors)                     |
+| `tersa diff <file.tsa> [-o dir]`  | Dry-run: list files that would change (exit `1` if any) |
+| `tersa gen <file.tsa> [-o dir]`   | Write the Next.js app                                   |
 
 ## Errors
 
@@ -159,4 +203,5 @@ app.tsa:7:31 error[E_BAD_VALUE]: unknown column type "moneyy"
   = hint: did you mean "money"?
 ```
 
-The parser collects all errors in one pass. `tersa gen` exits with code 2 on spec errors.
+The parser collects all errors in one pass. `tersa gen` and `tersa check` exit with code `2` on spec
+errors.

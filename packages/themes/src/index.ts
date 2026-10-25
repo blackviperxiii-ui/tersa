@@ -1,4 +1,5 @@
 import { auroraTailwind, auroraTokenNames, auroraVars } from "./generated/aurora";
+import { emberTailwind, emberTokenNames, emberVars } from "./generated/ember";
 
 export interface Theme {
   name: string;
@@ -16,6 +17,12 @@ export const themes: Record<string, Theme> = {
     vars: auroraVars,
     tailwind: auroraTailwind,
     tokenNames: auroraTokenNames,
+  },
+  ember: {
+    name: "ember",
+    vars: emberVars,
+    tailwind: emberTailwind,
+    tokenNames: emberTokenNames,
   },
 };
 

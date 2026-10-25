@@ -5,9 +5,10 @@ This app is generated from `app.tsa` by [tersa](https://github.com/blackviperxii
 ## Rules
 
 1. Read `app.tsa` first. It is the source of truth for pages, layout and data shapes.
-2. To change structure, edit `app.tsa` and run `tersa gen app.tsa -o <dir>`. Do not hand-edit
-   generated layout in `app/*/page.tsx`; regeneration will overwrite it.
-3. Put real logic in `lib/api.ts` (actions) and `lib/data.ts` (data). These are the slots you own.
+2. To change structure, edit `app.tsa` and run `tersa check`, then `tersa diff`, then
+   `tersa gen app.tsa -o <dir>`. Do not hand-edit generated `app/**/*.tsx`.
+3. Put real logic in `@tersa-slot begin custom` regions in `lib/api.ts` and `lib/data.ts`.
+   Fetch stubs live in `lib/stubs.ts`.
 4. Use design tokens only: `bg-primary`, `text-muted-foreground`, `border-border`, `fill-chart-1`.
    Never raw hex, rgb or px values. Colors live in `app/globals.css`.
 5. Keep loading and empty states. Every page has `loading.tsx`; tables and charts render an
@@ -17,7 +18,7 @@ This app is generated from `app.tsa` by [tersa](https://github.com/blackviperxii
 ## Grammar cheat sheet
 
 ```
-app "Name" [theme=aurora] [dark] [nav=sidebar|top|none]
+app "Name" [theme=aurora|ember] [dark] [nav=sidebar|top|none]
 page /path "Title"
   row kpi*4 @metrics
   grid 2
