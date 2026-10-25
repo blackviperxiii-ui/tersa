@@ -1,6 +1,7 @@
 import type {
   AppNode,
   ChartNode,
+  FeaturesNode,
   FieldDef,
   FormNode,
   KpiNode,
@@ -26,7 +27,8 @@ export function rng(seed: string) {
 export type ListUse =
   | { kind: "kpis"; count: number; node: RowNode }
   | { kind: "chart"; node: ChartNode }
-  | { kind: "table"; node: TableNode };
+  | { kind: "table"; node: TableNode }
+  | { kind: "features"; node: FeaturesNode };
 
 export interface ListBinding {
   name: string;
@@ -89,6 +91,9 @@ export function planData(app: AppNode): DataPlan {
             apiFns.set(c.action.fn, { kind: "row", args: c.action.args });
           }
         }
+        break;
+      case "features":
+        list(node.bind).uses.push({ kind: "features", node });
         break;
       case "form":
         if (node.bind) record(node.bind).form = node;
@@ -181,6 +186,15 @@ export function mockValue(key: string, next: () => number, index: number, type?:
     const f = pick(FIRST).toLowerCase();
     return literal(`${f}.${pick(LAST).toLowerCase()}@example.com`);
   }
+  if (/(phone|tel|mobile)/.test(k))
+    return literal(
+      `+1 555 ${String(100 + int(0, 899)).padStart(3, "0")} ${String(1000 + int(0, 8999))}`,
+    );
+  if (/(url|link|href|website)/.test(k)) return literal(`https://example.com/${pick(WORDS)}`);
+  if (/(image|img|avatar|photo)/.test(k))
+    return literal(`https://pics.example/seed/${index + 1}/400/300`);
+  if (/(description|body|summary|blurb)/.test(k))
+    return literal(`A short description for ${humanize(key)} ${index + 1}.`);
   if (/^id$|_id$|id$/.test(k)) return literal(`${k.replace(/_?id$/, "") || "rec"}_${1000 + index}`);
   if (/(customer|name|user|owner|author)/.test(k)) return literal(`${pick(FIRST)} ${pick(LAST)}`);
   if (/month/.test(k)) return literal(MONTHS[index % 12]!);
@@ -250,6 +264,9 @@ export function listSource(binding: ListBinding, length: number): string {
       if (!columns.has(use.node.y)) columns.set(use.node.y, "number");
     } else if (use.kind === "table") {
       for (const c of use.node.cols) columns.set(c.key, c.type === "text" ? undefined : c.type);
+    } else if (use.kind === "features") {
+      columns.set("title", undefined);
+      columns.set("description", undefined);
     }
   }
   const rows = Array.from({ length }, (_, i) => {
@@ -303,6 +320,75 @@ export function listLength(binding: ListBinding): number {
   for (const use of binding.uses) {
     if (use.kind === "chart") n = Math.max(n, use.node.x === "month" ? 12 : 8);
     if (use.kind === "table") n = Math.max(n, Math.min(60, use.node.pageSize * 2 + 3));
+    if (use.kind === "features") n = Math.max(n, use.node.cols * 2);
   }
   return n || 8;
+}
+
+const FEATURE_BLURBS = [
+  "Ship polished UI from a compact spec.",
+  "Design tokens keep every screen on-brand.",
+  "Mock data stubs unblock frontend work early.",
+  "Regenerate safely with protected edit slots.",
+  "Landing blocks for marketing pages in one file.",
+  "Typecheck-friendly output you fully own.",
+];
+
+/** JS source for lib/stubs.ts — typed fetch placeholders per binding. */
+export function stubsSource(app: AppNode): string {
+  const plan = planData(app);
+  const lines = [
+    "// Fetch stubs generated from app.tsa. Replace bodies with real API calls.",
+    'import type { KpiItem, Row } from "@/lib/types";',
+    "",
+  ];
+  for (const l of plan.lists) {
+    const isKpi = l.uses.some((u) => u.kind === "kpis");
+    const type = isKpi ? "KpiItem[]" : "Row[]";
+    lines.push(
+      `export async function fetch${capitalize(l.name)}(): Promise<${type}> {`,
+      `  const { ${l.name} } = await import("@/lib/data");`,
+      `  return ${l.name};`,
+      `}`,
+      "",
+    );
+  }
+  for (const r of plan.records) {
+    lines.push(
+      `export async function fetch${capitalize(r.name)}(): Promise<Record<string, unknown>> {`,
+      `  const { ${r.name} } = await import("@/lib/data");`,
+      `  return ${r.name};`,
+      `}`,
+      "",
+    );
+  }
+  for (const i of plan.items) {
+    lines.push(
+      `export async function fetch${capitalize(i.name)}(): Promise<number> {`,
+      `  const { ${i.name} } = await import("@/lib/data");`,
+      `  return ${i.name};`,
+      `}`,
+      "",
+    );
+  }
+  return lines.join("\n");
+}
+
+function capitalize(name: string) {
+  return name.charAt(0).toUpperCase() + name.slice(1);
+}
+
+export function featureRow(index: number): { title: string; description: string } {
+  const titles = [
+    "Fast setup",
+    "Token theming",
+    "Agent-friendly",
+    "Safe regen",
+    "Rich stubs",
+    "Landing ready",
+  ];
+  return {
+    title: titles[index % titles.length]!,
+    description: FEATURE_BLURBS[index % FEATURE_BLURBS.length]!,
+  };
 }

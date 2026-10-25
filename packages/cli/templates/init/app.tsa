@@ -1,0 +1,11 @@
+app "My App" theme=ember nav=top
+page / "Home"
+  hero "Ship polished UI from a compact spec" subtitle="Write app.tsa, run tersa gen, own the output." align=center
+    button "View docs" ~outline -> /docs
+    button "Get started" -> api.getStarted
+  features @highlights cols=3 "Why tersa"
+  cta "Ready to build?" subtitle="Edit this file and regenerate."
+    button "Open dashboard" -> /dashboard
+page /dashboard "Dashboard"
+  row kpi*3 @metrics
+  text "Starter dashboard — extend in app.tsa." ~muted

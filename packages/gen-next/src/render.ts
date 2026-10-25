@@ -4,8 +4,11 @@ import type {
   ButtonNode,
   CardNode,
   ChartNode,
+  CtaNode,
+  FeaturesNode,
   FormNode,
   GridNode,
+  HeroNode,
   KpiNode,
   Node,
   PageNode,
@@ -13,6 +16,7 @@ import type {
   TableNode,
   TextNode,
 } from "@tersa/spec";
+import { withGeneratedBanner } from "./slots";
 import { literal } from "./mock";
 
 export interface Emitted {
@@ -71,6 +75,12 @@ class Renderer {
         return this.grid(n);
       case "card":
         return this.card(n);
+      case "hero":
+        return this.hero(n);
+      case "features":
+        return this.features(n);
+      case "cta":
+        return this.cta(n);
       case "kpi":
         return this.kpi(n);
       case "chart":
@@ -110,6 +120,30 @@ class Renderer {
     if (n.children.length === 0)
       return `<div${idAttr(n)} className=${literal(`grid gap-4 ${cls}`)} />`;
     return `<div${idAttr(n)} className=${literal(`grid gap-4 ${cls}`)}>\n${indent(this.children(n))}\n</div>`;
+  }
+
+  landingActions(n: HeroNode | CtaNode): string {
+    const parts = n.children
+      .map((c) => this.node(c))
+      .filter(Boolean)
+      .join("\n");
+    return parts ? ` actions={<>\n${indent(parts, 2)}\n    </>}` : "";
+  }
+
+  hero(n: HeroNode): string {
+    this.imports.add("HeroSection");
+    return `<HeroSection${idAttr(n)} title=${literal(n.title)}${attr("subtitle", n.subtitle)} align=${literal(n.align)}${this.landingActions(n)} />`;
+  }
+
+  features(n: FeaturesNode): string {
+    this.imports.add("FeaturesSection");
+    this.data.add(n.bind);
+    return `<FeaturesSection${idAttr(n)}${attr("title", n.title)} items={${n.bind}} cols={${n.cols}} />`;
+  }
+
+  cta(n: CtaNode): string {
+    this.imports.add("CtaSection");
+    return `<CtaSection${idAttr(n)} title=${literal(n.title)}${attr("subtitle", n.subtitle)}${this.landingActions(n)} />`;
   }
 
   card(n: CardNode): string {
@@ -226,6 +260,9 @@ const TERSA_FILES: Record<string, string> = {
   DataTable: "data-table",
   FormView: "form-view",
   ActionButton: "action-button",
+  HeroSection: "hero-section",
+  FeaturesSection: "features-section",
+  CtaSection: "cta-section",
 };
 
 export function importLines(imports: Set<string>, data: Set<string>): string[] {
@@ -249,7 +286,7 @@ export function pageSource(page: PageNode): string {
   const body = jsx
     ? indent(jsx, 3)
     : `      <p className="text-sm text-muted-foreground">Nothing here yet.</p>`;
-  return `${lines.join("\n")}${lines.length ? "\n\n" : ""}export const metadata = { title: ${literal(page.title)} };
+  return `${withGeneratedBanner(`${lines.join("\n")}${lines.length ? "\n\n" : ""}export const metadata = { title: ${literal(page.title)} };
 
 export default function Page() {
   return (
@@ -259,7 +296,7 @@ ${body}
     </section>
   );
 }
-`;
+`)}`;
 }
 
 /** A loading skeleton that mirrors the page's layout. */
@@ -278,6 +315,14 @@ export function loadingSource(page: PageNode): string {
         return `<div className="grid gap-4 ${COLS[n.cols] ?? COLS[2]}">\n${indent(n.children.map(block).join("\n"))}\n</div>`;
       case "card":
         return `<Skeleton className="h-40" />`;
+      case "hero":
+        return `<Skeleton className="h-48 w-full" />`;
+      case "features":
+        return `<div className="grid gap-4 sm:grid-cols-3">\n${indent(
+          Array.from({ length: 3 }, () => `<Skeleton className="h-32" />`).join("\n"),
+        )}\n</div>`;
+      case "cta":
+        return `<Skeleton className="h-28 w-full" />`;
       case "kpi":
         return `<Skeleton className="h-24" />`;
       case "chart":
@@ -295,7 +340,7 @@ export function loadingSource(page: PageNode): string {
     }
   };
   const body = page.children.map(block).filter(Boolean).join("\n");
-  return `import { Skeleton } from "@/components/ui/skeleton";
+  return `${withGeneratedBanner(`import { Skeleton } from "@/components/ui/skeleton";
 
 export default function Loading() {
   return (
@@ -305,7 +350,7 @@ ${indent(body || `<Skeleton className="h-40" />`, 3)}
     </section>
   );
 }
-`;
+`)}`;
 }
 
 export function layoutSource(app: AppNode): string {
@@ -313,7 +358,7 @@ export function layoutSource(app: AppNode): string {
     .filter((c): c is PageNode => c.type === "page")
     .map((p) => `    { path: ${literal(p.path)}, title: ${literal(p.title)} },`)
     .join("\n");
-  return `import type { Metadata } from "next";
+  return `${withGeneratedBanner(`import type { Metadata } from "next";
 import { AppShell } from "@/components/tersa/app-shell";
 import "./globals.css";
 
@@ -336,18 +381,18 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     </html>
   );
 }
-`;
+`)}`;
 }
 
 export function rootPageSource(app: AppNode): string {
   const first = app.children.find((c): c is PageNode => c.type === "page");
   if (!first || first.path === "/") return "";
-  return `import { redirect } from "next/navigation";
+  return `${withGeneratedBanner(`import { redirect } from "next/navigation";
 
 export default function Home() {
   redirect(${literal(first.path)});
 }
-`;
+`)}`;
 }
 
 export function globalsCss(themeCss: string): string {

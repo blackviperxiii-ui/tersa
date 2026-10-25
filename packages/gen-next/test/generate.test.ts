@@ -27,6 +27,7 @@ const DYNAMIC = [
   "app/settings/loading.tsx",
   "lib/data.ts",
   "lib/api.ts",
+  "lib/stubs.ts",
   "package.json",
   "README.md",
 ];

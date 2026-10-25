@@ -16,11 +16,14 @@ responsive layout and design tokens. Deterministic: same spec, same code.
 ## Nodes
 
 ```
-app "Name" [theme=aurora] [dark] [nav=sidebar|top|none]
+app "Name" [theme=aurora|ember] [dark] [nav=sidebar|top|none]
 page /path "Title"
 row [kpi*N @list]                     # N kpi cards from a list of {label,value,delta}
 grid 1..6                             # responsive columns
 card ["Title"]
+hero "Headline" [subtitle=...] [align=center|left]   # child button/text for actions
+features @list [cols=1..4] ["Title"]                 # list rows: title, description
+cta "Heading" [subtitle=...]                         # child buttons
 kpi @data.field ["Label"] [format=number|money|percent]
 chart line|bar @list x=key [y=key] ["Title"]
 table @list cols=key[:type],... [sort] [search] [page=N] ["Title"]
@@ -51,17 +54,23 @@ page /settings "Settings"
 ## Output
 
 `app/<path>/page.tsx` + `loading.tsx` per page, `app/layout.tsx` (shell + nav), `app/error.tsx`,
-`app/globals.css` (tokens), `lib/data.ts` (mock data), `lib/api.ts` (action stubs),
-`components/ui/*` (shadcn-style), `components/tersa/*` (kpi, charts, data-table, form, shell).
+`app/globals.css` (tokens), `lib/data.ts` (mock data), `lib/api.ts` (action stubs), `lib/stubs.ts`
+(fetch placeholders), `components/ui/*` (shadcn-style), `components/tersa/*` (kpi, charts,
+data-table, form, shell, hero, features, cta).
 
 ## Themes
 
-`aurora` (only preset in M0): W3C DTCG tokens in OKLCH, built with Style Dictionary into
-`:root` / `.dark` CSS variables and a Tailwind `@theme inline` block. Use token utilities
-(`bg-primary`, `text-muted-foreground`, `border-border`, `fill-chart-1`); never raw hex or px.
+`aurora` and `ember`: W3C DTCG tokens in OKLCH, built with Style Dictionary into `:root` / `.dark`
+CSS variables and a Tailwind `@theme inline` block. Use token utilities (`bg-primary`,
+`text-muted-foreground`, `border-border`, `fill-chart-1`); never raw hex or px.
+
+## CLI
+
+`tersa init` scaffolds a project. `tersa check` validates. `tersa diff` previews regen. `tersa gen`
+writes `out/`. Spec errors exit `2`.
 
 ## Rules for agents
 
 1. Read `app.tsa` first; change the spec, not the generated layout.
-2. Run `tersa gen` after editing the spec. Errors show `file:line:col`, a caret, and a hint.
-3. Put custom logic in `lib/api.ts` and `lib/data.ts`. Keep tokens, never raw colors.
+2. Run `tersa check` then `tersa diff` before `tersa gen`. Errors show `file:line:col`, caret, hint.
+3. Custom logic in `@tersa-slot begin custom` regions in `lib/api.ts` / `lib/data.ts`. Keep tokens.

@@ -1,0 +1,13 @@
+---
+description: Tersa spec-driven UI. Read app.tsa first, regenerate with tersa gen, use tokens only.
+globs: ["app.tsa", "app/**/*.tsx", "lib/**/*.ts", "components/**/*.tsx"]
+alwaysApply: true
+---
+
+# Tersa rules
+
+- `app.tsa` is the source of truth. Run `tersa check` after edits; `tersa diff` before `tersa gen`.
+- Generated `app/**/*.tsx` files are overwritten. Custom code goes in `@tersa-slot begin custom` in
+  `lib/api.ts` and `lib/data.ts`.
+- Landing nodes: `hero`, `features @list`, `cta`. Themes: `aurora`, `ember`.
+- Design tokens only in styling. `pnpm typecheck` and `pnpm build` in `out/` must pass.
