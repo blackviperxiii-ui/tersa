@@ -20,6 +20,7 @@ describe("tersa cli", () => {
   it("prints help with no arguments and exits 1", () => {
     expect(run([], io, dir)).toBe(1);
     expect(logs.join("\n")).toContain("tersa gen <file.tsa>");
+    expect(logs.join("\n")).toContain("tersa check");
   });
 
   it("prints help and version", () => {
@@ -50,6 +51,37 @@ describe("tersa cli", () => {
     expect(existsSync(path.join(dir, "build/.gitignore"))).toBe(true);
     const pkg = JSON.parse(readFileSync(path.join(dir, "build/package.json"), "utf8"));
     expect(pkg.name).toBe("demo");
+  });
+
+  it("check validates specs with exit 0 or 2", () => {
+    writeFileSync(path.join(dir, "ok.tsa"), 'app "Demo"\npage /home "Home"\n  text "hi"\n');
+    expect(run(["check", "ok.tsa"], io, dir)).toBe(0);
+    expect(logs.at(-1)).toContain("ok.tsa: ok");
+    writeFileSync(path.join(dir, "bad.tsa"), 'app "Demo"\npage home "Home"\n');
+    logs = [];
+    errors = [];
+    expect(run(["check", "bad.tsa"], io, dir)).toBe(2);
+    expect(logs.join("\n")).toContain("E_BAD_PATH");
+  });
+
+  it("diff reports changes without writing", () => {
+    writeFileSync(path.join(dir, "app.tsa"), 'app "Demo"\npage /home "Home"\n  text "hi"\n');
+    expect(run(["gen", "app.tsa", "-o", "out"], io, dir)).toBe(0);
+    logs = [];
+    expect(run(["diff", "app.tsa", "-o", "out"], io, dir)).toBe(0);
+    expect(logs[0]).toContain("No changes");
+    writeFileSync(path.join(dir, "app.tsa"), 'app "Demo"\npage /home "Home"\n  text "hello"\n');
+    logs = [];
+    expect(run(["diff", "app.tsa", "-o", "out"], io, dir)).toBe(1);
+    expect(logs.join("\n")).toMatch(/modified/);
+  });
+
+  it("init scaffolds app.tsa and out/", () => {
+    const project = path.join(dir, "myapp");
+    expect(run(["init", "myapp", "--name", "Starter"], io, dir)).toBe(0);
+    expect(existsSync(path.join(project, "app.tsa"))).toBe(true);
+    expect(existsSync(path.join(project, "out/app/page.tsx"))).toBe(true);
+    expect(readFileSync(path.join(project, "app.tsa"), "utf8")).toContain('app "Starter"');
   });
 
   it("defaults to out/ and exits 2 with a formatted error on invalid specs", () => {

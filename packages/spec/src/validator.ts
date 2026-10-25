@@ -127,6 +127,7 @@ export function validate(app: AppNode): Diagnostic[] {
 
     switch (node.type) {
       case "chart":
+      case "features":
         useBinding(node, node.bind, "list");
         break;
       case "table": {

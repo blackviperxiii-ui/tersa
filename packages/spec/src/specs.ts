@@ -4,6 +4,9 @@ export const NODE_TYPES = [
   "row",
   "grid",
   "card",
+  "hero",
+  "features",
+  "cta",
   "kpi",
   "chart",
   "table",
@@ -14,7 +17,8 @@ export const NODE_TYPES = [
 ] as const;
 export type NodeType = (typeof NODE_TYPES)[number];
 
-export const THEMES = ["aurora"] as const;
+export const THEMES = ["aurora", "ember"] as const;
+export const HERO_ALIGNS = ["center", "left"] as const;
 export const NAV_MODES = ["sidebar", "top", "none"] as const;
 export const BUTTON_VARIANTS = ["default", "destructive", "outline", "secondary", "ghost"] as const;
 export const TEXT_VARIANTS = ["default", "heading", "muted"] as const;
@@ -47,6 +51,9 @@ const CONTENT: readonly NodeType[] = [
   "row",
   "grid",
   "card",
+  "hero",
+  "features",
+  "cta",
   "kpi",
   "chart",
   "table",
@@ -54,6 +61,8 @@ const CONTENT: readonly NodeType[] = [
   "button",
   "text",
 ];
+
+const LANDING_CHILDREN: readonly NodeType[] = ["button", "text"];
 
 export const NODE_SPECS: Record<NodeType, NodeSpec> = {
   app: {
@@ -125,6 +134,48 @@ export const NODE_SPECS: Record<NodeType, NodeSpec> = {
     action: "none",
     children: CONTENT,
     usage: 'card ["Title"]',
+  },
+  hero: {
+    type: "hero",
+    positional: [],
+    requiredPositional: [],
+    props: ["subtitle", "align"],
+    requiredProps: [],
+    flags: [],
+    text: "required",
+    bind: "none",
+    variant: false,
+    action: "none",
+    children: LANDING_CHILDREN,
+    usage: 'hero "Headline" [subtitle="Supporting copy"] [align=center|left]',
+  },
+  features: {
+    type: "features",
+    positional: [],
+    requiredPositional: [],
+    props: ["cols"],
+    requiredProps: [],
+    flags: [],
+    text: "optional",
+    bind: "required",
+    variant: false,
+    action: "none",
+    children: [],
+    usage: 'features @list [cols=3] ["Section title"]',
+  },
+  cta: {
+    type: "cta",
+    positional: [],
+    requiredPositional: [],
+    props: ["subtitle"],
+    requiredProps: [],
+    flags: [],
+    text: "required",
+    bind: "none",
+    variant: false,
+    action: "none",
+    children: LANDING_CHILDREN,
+    usage: 'cta "Ready to start?" [subtitle="Optional subcopy"]',
   },
   kpi: {
     type: "kpi",

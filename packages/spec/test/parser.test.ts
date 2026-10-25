@@ -358,4 +358,25 @@ describe("parse: invalid specs report line and column", () => {
     const { diagnostics } = parse('app "X" theme=neon\npage dashboard "D"\n  tabel');
     expect(diagnostics.map((d) => d.line)).toEqual([1, 2, 3]);
   });
+
+  it("parses landing blocks and ember theme", () => {
+    const src = `app "Landing" theme=ember
+page / "Home"
+  hero "Headline" subtitle="Sub" align=left
+    button "Go" -> /dash
+  features @items cols=2 "Features"
+  cta "Start now"
+    button "Sign up" -> api.join
+`;
+    const { app, diagnostics } = parse(src);
+    expect(diagnostics).toEqual([]);
+    expect(app?.theme).toBe("ember");
+    const page = app?.children[0];
+    expect(page?.children.map((c) => c.type)).toEqual(["hero", "features", "cta"]);
+    const hero = page?.children[0];
+    if (hero?.type === "hero") {
+      expect(hero.align).toBe("left");
+      expect(hero.children[0]?.type).toBe("button");
+    }
+  });
 });

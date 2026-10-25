@@ -13,6 +13,7 @@ import {
   CHART_KINDS,
   COLUMN_TYPES,
   FIELD_TYPES,
+  HERO_ALIGNS,
   KPI_FORMATS,
   NAV_MODES,
   NODE_SPECS,
@@ -485,6 +486,37 @@ function build(raw: Raw, report: Report): Node | null {
     }
     case "card":
       return done({ ...base, type: "card", ...(text !== undefined ? { title: text } : {}) });
+    case "hero": {
+      const a = prop("align");
+      const align = a
+        ? fail(parseEnum(a.value, HERO_ALIGNS, "align", a.valueColumn, report))
+        : "center";
+      return done({
+        ...base,
+        type: "hero",
+        title: text!,
+        ...(prop("subtitle") ? { subtitle: prop("subtitle")!.value } : {}),
+        align: align ?? "center",
+      });
+    }
+    case "features": {
+      const c = prop("cols");
+      const cols = c ? fail(parseIntIn(c.value, 1, 4, "columns", c.valueColumn, report)) : 3;
+      return done({
+        ...base,
+        type: "features",
+        bind: raw.bind!.value,
+        cols: cols ?? 3,
+        ...(text !== undefined ? { title: text } : {}),
+      });
+    }
+    case "cta":
+      return done({
+        ...base,
+        type: "cta",
+        title: text!,
+        ...(prop("subtitle") ? { subtitle: prop("subtitle")!.value } : {}),
+      });
     case "kpi": {
       const f = prop("format");
       const format = f

@@ -6,7 +6,7 @@ import { fileURLToPath } from "node:url";
 import path from "node:path";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const themes = ["aurora"];
+const themes = ["aurora", "ember"];
 
 // Token path -> CSS variable name: color.primary-foreground -> primary-foreground,
 // radius.base -> radius, font.body -> font-body. Values pass through untouched (OKLCH stays OKLCH).

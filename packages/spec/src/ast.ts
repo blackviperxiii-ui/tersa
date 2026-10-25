@@ -3,6 +3,7 @@ import type {
   CHART_KINDS,
   COLUMN_TYPES,
   FIELD_TYPES,
+  HERO_ALIGNS,
   KPI_FORMATS,
   NAV_MODES,
   TEXT_VARIANTS,
@@ -20,6 +21,7 @@ export type ChartKind = (typeof CHART_KINDS)[number];
 export type KpiFormat = (typeof KPI_FORMATS)[number];
 export type ColumnType = (typeof COLUMN_TYPES)[number];
 export type FieldType = (typeof FIELD_TYPES)[number];
+export type HeroAlign = (typeof HERO_ALIGNS)[number];
 
 /** `-> api.fn(arg, ...)` calls a function in the generated api module; `-> /path` navigates. */
 export type ActionRef =
@@ -68,6 +70,23 @@ export interface GridNode extends Base {
 export interface CardNode extends Base {
   type: "card";
   title?: string;
+}
+export interface HeroNode extends Base {
+  type: "hero";
+  title: string;
+  subtitle?: string;
+  align: HeroAlign;
+}
+export interface FeaturesNode extends Base {
+  type: "features";
+  bind: string;
+  cols: number;
+  title?: string;
+}
+export interface CtaNode extends Base {
+  type: "cta";
+  title: string;
+  subtitle?: string;
 }
 export interface KpiNode extends Base {
   type: "kpi";
@@ -125,6 +144,9 @@ export type Node =
   | RowNode
   | GridNode
   | CardNode
+  | HeroNode
+  | FeaturesNode
+  | CtaNode
   | KpiNode
   | ChartNode
   | TableNode

@@ -49,12 +49,12 @@ button text` (and `action` under a table). Errors come with file, line, column, 
 
 ## Packages
 
-| Package           | What it does                                              |
-| ----------------- | --------------------------------------------------------- |
-| `@tersa/spec`     | Grammar v0 parser, AST types, validator, `compile()`      |
-| `@tersa/gen-next` | AST → Next.js App Router + shadcn/ui source               |
-| `@tersa/themes`   | DTCG token presets (`aurora`) built with Style Dictionary |
-| `@tersa/cli`      | `tersa gen <file.tsa> [-o dir]`                           |
+| Package           | What it does                                                |
+| ----------------- | ----------------------------------------------------------- |
+| `@tersa/spec`     | Grammar v0 parser, AST types, validator, `compile()`        |
+| `@tersa/gen-next` | AST → Next.js App Router + shadcn/ui source                 |
+| `@tersa/themes`   | DTCG token presets (`aurora`, `ember`) via Style Dictionary |
+| `@tersa/cli`      | `tersa init`, `check`, `diff`, `gen`                        |
 
 ## Development
 
@@ -71,8 +71,9 @@ CI runs all of the above on Node 20 and 22.
 
 ## Roadmap
 
-- **M0** (this): grammar v0, parser and validator, `tersa gen`, aurora theme, docs, CI.
-- **M1**: `init`, `check`, `diff`, protected edit slots, more themes, data stubs, landing blocks.
+- **M0**: grammar v0, parser and validator, `tersa gen`, aurora theme, docs, CI.
+- **M1** (this): `init`, `check`, `diff`, protected edit slots, `ember` theme, `lib/stubs.ts`, landing
+  blocks (`hero`, `features`, `cta`).
 - **M2**: benchmark harness, shadcn registry integration, auth and CRUD patterns, visual tests.
 - **M3**: grammar freeze, editor syntax highlighting, MCP server, theme registry.
 
