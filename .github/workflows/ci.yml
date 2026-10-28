@@ -6,6 +6,11 @@ on:
   pull_request:
     branches: [main, beta]
   workflow_dispatch:
+  merge_group:
+  # Nightly full run (3:35 AM Central during CDT): the Node 20 + 22 matrix and
+  # the generated example build that PRs skip.
+  schedule:
+    - cron: "35 8 * * *"
 
 permissions:
   contents: read
@@ -14,10 +19,73 @@ concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
+# PRs run the short gate: format, and one lint + typecheck + test + build job
+# on Node 22. The full Node 20/22 matrix and the generated example build run on
+# push to beta/main, nightly and on manual runs. Path gating is a job-level
+# `if:` on the `changes` output, never a workflow-level filter, so skipped
+# required checks still report.
 jobs:
-  test:
-    name: Node ${{ matrix.node }}
+  changes:
     runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      code: ${{ github.event_name != 'pull_request' || steps.filter.outputs.code == 'true' }}
+      full: ${{ github.event_name == 'push' || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        if: github.event_name == 'pull_request'
+        with:
+          predicate-quantifier: every
+          filters: |
+            code:
+              - '**'
+              - '!docs/**'
+              - '!**/*.md'
+
+  format:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec prettier --check .
+
+  lint-test:
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      NEXT_TELEMETRY_DISABLED: 1
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec eslint .
+      - run: pnpm typecheck
+      - run: pnpm test
+      - run: pnpm build
+
+  full:
+    name: full (Node ${{ matrix.node }})
+    needs: changes
+    if: needs.changes.outputs.full == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
     strategy:
       fail-fast: false
       matrix:
