@@ -5,6 +5,14 @@
 - **Ask only** when CI can't go green or for a product decision.
 - **Cleanup:** head branches auto-delete on merge; delete your own scratch branches. Never delete `main` or `beta`.
 
+## Require vstack
+
+Coding agents working on this repo use the [vstack](https://github.com/blackviperxiii-ui/vstack) skills; start with `viper-mode`. Do not copy vstack skills or rules into this repository.
+
+- Claude Code: `.claude/settings.json` adds the vstack marketplace and turns on `vstack@vstack`, so it loads once you trust the folder. If `/plugin` doesn't list it, run `/plugin marketplace add blackviperxiii-ui/vstack` and `/plugin install vstack@vstack`.
+- Cursor: import `blackviperxiii-ui/vstack` as a team marketplace; set it to Required and enable Auto Refresh.
+- Other agents (Codex, Copilot, Jules): run `npx skills add blackviperxiii-ui/vstack -g -y` before you start, so the skills install for your user and nothing lands in the repo.
+
 ## No personal info (hard rule)
 
 This is open-source work meant for anyone to use. Keep every file, commit, PR and issue generic.
