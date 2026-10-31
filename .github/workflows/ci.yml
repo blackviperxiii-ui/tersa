@@ -15,9 +15,12 @@ on:
 permissions:
   contents: read
 
+# A newer push to the same PR or to beta cancels the run it replaces; the newer
+# beta run repeats the full matrix. The group includes the event, so a beta push
+# never cancels the nightly run on beta. Pushes to main always finish.
 concurrency:
-  group: ci-${{ github.ref }}
-  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+  group: ci-${{ github.ref }}-${{ github.event_name }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' || (github.event_name == 'push' && github.ref == 'refs/heads/beta') }}
 
 # PRs run the short gate: format, and one lint + typecheck + test + build job
 # on Node 22. The full Node 20/22 matrix and the generated example build run on
