@@ -67,7 +67,7 @@ pnpm build
 pnpm verify:example   # generate the example, install it, next build + typecheck
 ```
 
-CI runs all of the above on Node 20 and 22.
+Pull requests run lint, typecheck, test and build on Node 22. Pushes to `beta` and `main`, the nightly run and manual runs add Node 20 and `pnpm verify:example`. See [docs/ci-policy.md](docs/ci-policy.md).
 
 ## Roadmap
 
