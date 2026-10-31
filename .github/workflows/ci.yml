@@ -24,9 +24,10 @@ concurrency:
 
 # PRs run the short gate: format, and one lint + typecheck + test + build job
 # on Node 22. The full Node 20/22 matrix and the generated example build run on
-# push to beta/main, nightly and on manual runs. Path gating is a job-level
-# `if:` on the `changes` output, never a workflow-level filter, so skipped
-# required checks still report.
+# push to beta/main, nightly and on manual runs. The nightly skips lint-test
+# and full when its commit already passed CI. Path gating is a job-level `if:`
+# on the `changes` output, never a workflow-level filter, so skipped required
+# checks still report. See docs/ci-policy.md.
 jobs:
   changes:
     runs-on: ubuntu-latest
@@ -34,10 +35,27 @@ jobs:
     permissions:
       contents: read
       pull-requests: read
+      actions: read
     outputs:
-      code: ${{ github.event_name != 'pull_request' || steps.filter.outputs.code == 'true' }}
-      full: ${{ github.event_name == 'push' || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' }}
+      code: ${{ steps.nightly.outputs.passed != 'true' && (github.event_name != 'pull_request' || steps.filter.outputs.code == 'true') }}
+      full: ${{ steps.nightly.outputs.passed != 'true' && (github.event_name == 'push' || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') }}
     steps:
+      # A nightly on a commit that already passed a push, nightly or manual CI
+      # run (each runs the full matrix) would only repeat it. If the lookup
+      # fails, the nightly runs.
+      - name: Skip nightly if this commit already passed
+        id: nightly
+        if: github.event_name == 'schedule'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          passed=$(gh api "repos/${GITHUB_REPOSITORY}/actions/workflows/ci.yml/runs?head_sha=${GITHUB_SHA}&status=success&per_page=50" \
+            --jq '[.workflow_runs[] | select(.event == "push" or .event == "schedule" or .event == "workflow_dispatch")] | length' 2>/dev/null) || passed=0
+          case "$passed" in ''|*[!0-9]*) passed=0 ;; esac
+          if [ "$passed" -gt 0 ]; then
+            echo "passed=true" >> "$GITHUB_OUTPUT"
+            echo "${GITHUB_SHA} already passed CI; skipping the nightly rerun."
+          fi
       - uses: actions/checkout@v4
       - uses: dorny/paths-filter@v3
         id: filter
@@ -50,6 +68,8 @@ jobs:
               - '!docs/**'
               - '!**/*.md'
 
+  # format doesn't wait on `changes`: a failed `changes` job would skip it, and a
+  # skipped required check counts as passed. It also runs on a skipped nightly.
   format:
     runs-on: ubuntu-latest
     timeout-minutes: 10

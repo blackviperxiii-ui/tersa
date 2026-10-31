@@ -1,6 +1,6 @@
 # CLAUDE.md (tersa) — same rules as AGENTS.md
 
-- **Flow:** branch from the latest `beta`, open every PR into `beta`, and squash-merge it yourself as soon as CI (`Node 20`, `Node 22`) is green. No review hold.
+- **Flow:** branch from the latest `beta`, open every PR into `beta`, and squash-merge it yourself as soon as the required checks (`format`, `lint-test`, `pii-guard`) are green. No review hold.
 - **Gated:** promoting `beta` → `main`, tagging, and releasing need the maintainer's explicit approval. Never push to `main` or `beta` directly (ruleset: PRs only, CI green, no force-push or delete).
 - **Ask only** when CI can't go green or for a product decision.
 - **Cleanup:** head branches auto-delete on merge; delete your own scratch branches. Never delete `main` or `beta`.
